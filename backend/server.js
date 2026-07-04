@@ -3,11 +3,18 @@ import express from 'express';
 import cors from 'cors';
 import { ethers } from 'ethers';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const PORT = process.env.PORT || 3002;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // --- Ethereum/ARC Setup ---
 const ARC_RPC_URL = process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network';
@@ -21,7 +28,7 @@ const SCHEDULER_ADDRESS = process.env.SCHEDULER_ADDRESS || '0x000000000000000000
 const SCHEDULER_ABI = [
   "function executeOrder(uint256 orderId) external",
   "function nextOrderId() external view returns (uint256)",
-  "function orders(uint256) external view returns (uint256 id, address sender, address receiver, address token, uint256 amount, uint256 executeAt, bool executed, bool cancelled)"
+  "function orders(uint256) external view returns (uint256 id, address sender, address receiver, address token, uint256 amount, uint256 executeAt, uint256 createdAt, bool executed, bool cancelled)"
 ];
 const schedulerContract = new ethers.Contract(SCHEDULER_ADDRESS, SCHEDULER_ABI, wallet);
 

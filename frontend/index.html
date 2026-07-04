@@ -167,6 +167,10 @@
     .btn-outline:hover { background: rgba(255, 255, 255, 0.05); }
     .btn-danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); width: auto; padding: 6px 14px; font-size: 12px; }
     .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-success { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: var(--success); width: auto; padding: 6px 14px; font-size: 12px; }
+    .btn-success:hover { background: var(--success); color: #000; }
+    .btn-demo { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: var(--accent); width: auto; padding: 6px 14px; font-size: 12px; }
+    .btn-demo:hover { background: var(--accent); color: #fff; }
 
     /* ORDER CARD */
     .order-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 15px; position: relative; }
@@ -174,11 +178,153 @@
     .order-id { font-size: 14px; font-weight: 700; color: var(--primary); }
     .order-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; }
     .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--primary); }
+    .status-locked { background: rgba(59, 130, 246, 0.15); color: var(--accent); }
     .status-executed { background: rgba(16, 185, 129, 0.15); color: var(--success); }
     .status-cancelled { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
 
     .order-details { font-size: 13px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 15px; }
     .countdown { font-weight: 700; color: var(--accent); }
+    .cancel-countdown { font-weight: 700; color: var(--primary); }
+
+    /* CHEQUE MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(8px);
+    }
+    .modal-content {
+      background: #0f172a;
+      border: 2px solid var(--primary);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 650px;
+      padding: 30px;
+      position: relative;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+    .close-modal {
+      position: absolute;
+      top: 15px; right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .close-modal:hover { color: #fff; }
+
+    /* CHEQUE DESIGN */
+    .cheque {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 3px double var(--primary);
+      padding: 25px;
+      border-radius: 12px;
+      color: #cbd5e1;
+      font-family: 'Outfit', sans-serif;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 40px rgba(245, 158, 11, 0.05);
+    }
+    .cheque::before {
+      content: "PAYDAY";
+      position: absolute;
+      font-size: 110px;
+      font-weight: 900;
+      color: rgba(245, 158, 11, 0.02);
+      top: 15%; left: 10%;
+      letter-spacing: 10px;
+      transform: rotate(-10deg);
+      pointer-events: none;
+    }
+    .cheque-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .cheque-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .cheque-no {
+      font-size: 14px;
+      font-family: monospace;
+      color: var(--text-muted);
+    }
+    .cheque-body {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .cheque-row {
+      margin-bottom: 15px;
+      border-bottom: 1px dashed rgba(255,255,255,0.1);
+      padding-bottom: 5px;
+    }
+    .cheque-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: block;
+    }
+    .cheque-value {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 500;
+      word-break: break-all;
+    }
+    .cheque-amount-box {
+      border: 2px solid var(--primary);
+      background: rgba(245, 158, 11, 0.08);
+      padding: 15px 25px;
+      border-radius: 8px;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+    }
+    .cheque-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 15px;
+      margin-top: 20px;
+    }
+    .cheque-status-stamp {
+      border: 2px dashed var(--success);
+      color: var(--success);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      transform: rotate(-3deg);
+      display: inline-block;
+    }
+    .cheque-signature {
+      text-align: right;
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .cheque-signature-line {
+      border-bottom: 1px solid #fff;
+      width: 150px;
+      margin-bottom: 5px;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
@@ -264,6 +410,47 @@
     </div>
   </main>
 
+  <!-- CHEQUE MODAL -->
+  <div id="chequeModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeCheque()">&times;</span>
+      <div class="cheque">
+        <div class="cheque-header">
+          <div class="cheque-title"><i class="fa-solid fa-file-invoice-dollar"></i> PayDay Blokzincir Ödeme Çeki</div>
+          <div class="cheque-no" id="modalChequeNo">NO: PAYDAY-000001</div>
+        </div>
+        <div class="cheque-body">
+          <div>
+            <div class="cheque-row">
+              <span class="cheque-label">Gönderen (Cüzdan)</span>
+              <span class="cheque-value" id="modalSender">0x...</span>
+            </div>
+            <div class="cheque-row">
+              <span class="cheque-label">Alıcı (Receiver)</span>
+              <span class="cheque-value" id="modalReceiver">0x...</span>
+            </div>
+            <div class="cheque-row">
+              <span class="cheque-label">Planlanan Gönderim Zamanı</span>
+              <span class="cheque-value" id="modalExecuteAt">01/01/2026 00:00</span>
+            </div>
+          </div>
+          <div class="cheque-amount-box" id="modalAmount">
+            15.00 USDC
+          </div>
+        </div>
+        <div class="cheque-footer">
+          <div class="cheque-status-stamp">
+            🔒 Kilitli ve Garantili
+          </div>
+          <div class="cheque-signature">
+            <div class="cheque-signature-line"></div>
+            <div>PayDay Protokolü Garantisi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     let userAddress = null;
     let mockOrders = [];
@@ -327,20 +514,53 @@
         receiver,
         amount,
         executeAt: Math.floor(executeTime / 1000),
+        createdAt: Math.floor(Date.now() / 1000),
         status: 'pending'
       });
 
       renderOrders();
-      alert(`Emir #${orderId} Başarıyla Planlandı!\nBelirtilen tarihte Relayer tarafından otomatik çalıştırılacak.`);
+      alert(`Emir #${orderId} Başarıyla Planlandı!\nİlk 24 saat boyunca iptal hakkınız bulunmaktadır.`);
     }
 
     function cancelOrder(id) {
       const idx = mockOrders.findIndex(o => o.id === id);
       if (idx !== -1 && mockOrders[idx].status === 'pending') {
+        const secondsElapsed = Math.floor(Date.now() / 1000) - mockOrders[idx].createdAt;
+        if (secondsElapsed > 24 * 3600) {
+          alert('Hata: 24 saatlik iptal süresi dolduğu için bu işlem artık iptal edilemez!');
+          return;
+        }
         mockOrders[idx].status = 'cancelled';
         renderOrders();
         alert(`Emir #${id} İptal edildi ve tokenlar iade edildi.`);
       }
+    }
+
+    // Demo simulation function to instantly expire the 24 hour cancel window
+    function simulateLock(id) {
+      const idx = mockOrders.findIndex(o => o.id === id);
+      if (idx !== -1) {
+        // Move createdAt back by 25 hours
+        mockOrders[idx].createdAt = mockOrders[idx].createdAt - (25 * 3600);
+        renderOrders();
+      }
+    }
+
+    function showCheque(id) {
+      const o = mockOrders.find(order => order.id === id);
+      if (!o) return;
+
+      document.getElementById('modalChequeNo').innerText = `NO: PAYDAY-${String(o.id).padStart(6, '0')}`;
+      document.getElementById('modalSender').innerText = userAddress ? userAddress : 'Gönderici Cüzdanı Bağlı Değil';
+      document.getElementById('modalReceiver').innerText = o.receiver;
+      document.getElementById('modalExecuteAt').innerText = new Date(o.executeAt * 1000).toLocaleString();
+      document.getElementById('modalAmount').innerText = `${o.amount.toFixed(2)} ${o.tokenSymbol}`;
+
+      document.getElementById('chequeModal').style.display = 'flex';
+    }
+
+    function closeCheque() {
+      document.getElementById('chequeModal').style.display = 'none';
     }
 
     function renderOrders() {
@@ -353,12 +573,37 @@
       listEl.innerHTML = mockOrders.map(o => {
         const timeStr = new Date(o.executeAt * 1000).toLocaleString();
         const secondsLeft = o.executeAt - Math.floor(Date.now() / 1000);
+        const cancelTimeLeft = (o.createdAt + 24 * 3600) - Math.floor(Date.now() / 1000);
+        
         let statusBadge = '';
         let actionBtn = '';
 
         if (o.status === 'pending') {
-          statusBadge = `<span class="order-status status-pending">Planlandı</span>`;
-          actionBtn = `<button class="btn btn-danger" onclick="cancelOrder(${o.id})">❌ İptal Et</button>`;
+          if (cancelTimeLeft > 0) {
+            statusBadge = `<span class="order-status status-pending">İptal Edilebilir</span>`;
+            
+            // Format cancel time remaining
+            const hours = Math.floor(cancelTimeLeft / 3600);
+            const minutes = Math.floor((cancelTimeLeft % 3600) / 60);
+            const seconds = cancelTimeLeft % 60;
+            const cancelStr = `${hours}sa ${minutes}dk ${seconds}sn`;
+
+            actionBtn = `
+              <div style="display:flex; gap:10px; justify-content: flex-end; align-items:center; flex-wrap:wrap;">
+                <span class="cancel-countdown" style="font-size:11px;"><i class="fa-regular fa-clock"></i> İptal Süresi: ${cancelStr}</span>
+                <button class="btn btn-danger" onclick="cancelOrder(${o.id})">❌ İptal Et</button>
+                <button class="btn btn-demo" onclick="simulateLock(${o.id})" title="24 saati simüle edip kilitle"><i class="fa-solid fa-bolt"></i> Süreyi Bitir (Demo)</button>
+              </div>
+            `;
+          } else {
+            statusBadge = `<span class="order-status status-locked">🔒 Geri Dönüşsüz</span>`;
+            actionBtn = `
+              <div style="display:flex; gap:10px; justify-content: flex-end; align-items:center;">
+                <span style="font-size:12px; color:var(--success); font-weight:600;"><i class="fa-solid fa-shield-halved"></i> Garantili Kilitleme Tamamlandı</span>
+                <button class="btn btn-success" onclick="showCheque(${o.id})"><i class="fa-solid fa-ticket"></i> Çek Yaprağı Paylaş</button>
+              </div>
+            `;
+          }
         } else if (o.status === 'executed') {
           statusBadge = `<span class="order-status status-executed">Gönderildi</span>`;
         } else {
@@ -383,6 +628,14 @@
           </div>
         `;
       }).join('');
+    }
+
+    // Close modal if user clicks outside of it
+    window.onclick = function(event) {
+      const modal = document.getElementById('chequeModal');
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
     }
 
     // Tick countdown every second

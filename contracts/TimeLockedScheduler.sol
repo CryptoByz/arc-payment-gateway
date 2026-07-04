@@ -25,6 +25,7 @@ contract TimeLockedScheduler {
     error ExecutionTimeNotReached();
     error Unauthorized();
     error TransferFailed();
+    error CancellationWindowExpired();
 
     // --- Structs ---
     struct Order {
@@ -34,6 +35,7 @@ contract TimeLockedScheduler {
         address token;
         uint256 amount;
         uint256 executeAt;
+        uint256 createdAt;
         bool executed;
         bool cancelled;
     }
@@ -74,6 +76,7 @@ contract TimeLockedScheduler {
             token: token,
             amount: amount,
             executeAt: executeAt,
+            createdAt: block.timestamp,
             executed: false,
             cancelled: false
         });
@@ -111,6 +114,7 @@ contract TimeLockedScheduler {
         if (order.sender != msg.sender) revert Unauthorized();
         if (order.executed) revert OrderAlreadyExecuted();
         if (order.cancelled) revert OrderAlreadyCancelled();
+        if (block.timestamp > order.createdAt + 24 hours) revert CancellationWindowExpired();
 
         order.cancelled = true;
 
