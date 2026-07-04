@@ -34,14 +34,76 @@
                         radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
     }
 
+    /* TOP STATUS BAR */
+    .top-status-bar {
+      background: rgba(12, 17, 29, 0.7);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0;
+      font-size: 13px;
+    }
+    .top-status-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+    .gas-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+    }
+    .gas-badge {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .tooltip {
+      position: relative;
+      cursor: help;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .tooltip:hover::after {
+      content: "Otomatik Gas Havuzu: Geleceğe dönük planlanan işlemlerin, cüzdanınızdan gas ücreti harcamadan sistem (relayer) tarafından otomatik çalıştırılmasını sağlayan bakiyedir.";
+      position: absolute;
+      top: 25px;
+      right: 0;
+      width: 250px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      line-height: 1.4;
+    }
+
     header {
       border-bottom: 1px solid var(--border);
       padding: 20px 0;
       background: rgba(7, 9, 14, 0.85);
       backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
     }
 
     .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
@@ -61,6 +123,39 @@
     input, select { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); padding: 12px 16px; border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: all 0.2s; }
     input:focus { border-color: var(--primary); }
 
+    /* TOKEN SELECTOR */
+    .token-selector { display: flex; gap: 10px; }
+    .token-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .token-btn:hover { background: rgba(255, 255, 255, 0.08); }
+    .token-btn.active {
+      border-color: var(--primary);
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--primary);
+    }
+
+    /* INPUT WRAPPER WITH SUFFIX */
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    .input-wrapper input { width: 100%; padding-right: 80px; }
+    .input-suffix {
+      position: absolute;
+      right: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      pointer-events: none;
+      font-size: 14px;
+    }
+
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; width: 100%; text-align: center; }
     .btn-primary { background: var(--primary); color: #000; }
     .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
@@ -68,10 +163,6 @@
     .btn-outline:hover { background: rgba(255, 255, 255, 0.05); }
     .btn-danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); width: auto; padding: 6px 14px; font-size: 12px; }
     .btn-danger:hover { background: var(--danger); color: #fff; }
-
-    /* RELAYER STATUS */
-    .status-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 12px; }
-    .status-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
 
     /* ORDER CARD */
     .order-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 15px; position: relative; }
@@ -87,6 +178,21 @@
   </style>
 </head>
 <body>
+
+  <!-- TOP BAR STATUS -->
+  <div class="top-status-bar">
+    <div class="container top-status-content">
+      <div class="status-indicator">
+        <span>Sunucu Durumu:</span>
+        <span style="color: var(--success);" id="serverStatusText">🟢 Aktif</span>
+      </div>
+      <div class="gas-info">
+        <span>Otomatik Gas Havuzu:</span>
+        <span class="gas-badge" id="relayerGas">Yükleniyor...</span>
+        <span class="tooltip">?</span>
+      </div>
+    </div>
+  </div>
 
   <header>
     <div class="container header-content">
@@ -104,22 +210,16 @@
       <!-- SCHEDULE PANEL -->
       <div class="panel">
         <h2 class="panel-title">📅 Yeni Transfer Planla</h2>
-        
-        <div class="status-card">
-          <div class="status-row">
-            <span>Servis Durumu:</span>
-            <span style="color:var(--success); font-weight:700;">🟢 Aktif</span>
-          </div>
-          <div class="status-row">
-            <span>Relayer Gas Bakiyesi:</span>
-            <span id="relayerGas" style="font-weight:700;">Yükleniyor...</span>
-          </div>
-        </div>
 
         <form id="schedulerForm" onsubmit="scheduleTransfer(event)">
+          <!-- Currency Selection Buttons -->
           <div class="form-group">
-            <label>Token Adresi (USDC / ERC20)</label>
-            <input type="text" id="tokenAddress" value="0x8172189cCE9b68F94Ee23fB5077748495B85098F" required>
+            <label>Ödeme Para Birimi</label>
+            <div class="token-selector">
+              <button type="button" id="btnUSDC" class="token-btn active" onclick="selectToken('USDC', '0x8172189cCE9b68F94Ee23fB5077748495B85098F')">USDC</button>
+              <button type="button" id="btnEURC" class="token-btn" onclick="selectToken('EURC', '0xe2935B5077748495B85098F8172189cCE9b68F94')">EURC</button>
+            </div>
+            <input type="hidden" id="tokenAddress" value="0x8172189cCE9b68F94Ee23fB5077748495B85098F">
           </div>
           
           <div class="form-group">
@@ -127,9 +227,13 @@
             <input type="text" id="receiverAddress" placeholder="0x..." required>
           </div>
 
+          <!-- Amount Input with Locked Suffix -->
           <div class="form-group">
             <label>Gönderilecek Miktar</label>
-            <input type="number" step="0.01" id="amount" placeholder="Miktar Girin" required>
+            <div class="input-wrapper">
+              <input type="number" step="0.0001" id="amount" placeholder="0.0000 USDC" required>
+              <span class="input-suffix" id="amountSuffix">USDC</span>
+            </div>
           </div>
 
           <div class="form-group">
@@ -159,14 +263,32 @@
   <script>
     let userAddress = null;
     let mockOrders = [];
+    let selectedTokenSymbol = 'USDC';
+    let selectedTokenAddress = '0x8172189cCE9b68F94Ee23fB5077748495B85098F';
+
+    function selectToken(symbol, address) {
+      selectedTokenSymbol = symbol;
+      selectedTokenAddress = address;
+      document.getElementById('tokenAddress').value = address;
+      document.getElementById('amountSuffix').innerText = symbol;
+      document.getElementById('amount').placeholder = `0.0000 ${symbol}`;
+      
+      // Update active state in UI buttons
+      document.getElementById('btnUSDC').classList.toggle('active', symbol === 'USDC');
+      document.getElementById('btnEURC').classList.toggle('active', symbol === 'EURC');
+    }
 
     async function checkBackendStatus() {
       try {
         const resp = await fetch('http://localhost:3002/api/status');
         const data = await resp.json();
         document.getElementById('relayerGas').innerText = `${parseFloat(data.relayerBalanceETH).toFixed(4)} ETH`;
+        document.getElementById('serverStatusText').innerHTML = `🟢 Aktif`;
+        document.getElementById('serverStatusText').style.color = 'var(--success)';
       } catch (e) {
-        document.getElementById('relayerGas').innerText = 'Backend Bağlantısı Yok';
+        document.getElementById('relayerGas').innerText = '0.0000 ETH';
+        document.getElementById('serverStatusText').innerHTML = `🔴 Çevrimdışı`;
+        document.getElementById('serverStatusText').style.color = 'var(--danger)';
       }
     }
 
@@ -197,6 +319,7 @@
       mockOrders.push({
         id: orderId,
         token,
+        tokenSymbol: selectedTokenSymbol,
         receiver,
         amount,
         executeAt: Math.floor(executeTime / 1000),
@@ -246,7 +369,7 @@
             </div>
             <div class="order-details">
               <div><strong>Alıcı:</strong> ${o.receiver.substring(0,8)}...</div>
-              <div><strong>Miktar:</strong> ${o.amount} USDC</div>
+              <div><strong>Miktar:</strong> ${o.amount} ${o.tokenSymbol || 'USDC'}</div>
               <div><strong>Tarih:</strong> ${timeStr}</div>
               <div><strong>Sayaç:</strong> <span class="countdown">${secondsLeft > 0 ? secondsLeft + ' saniye kaldı' : 'Süre doldu'}</span></div>
             </div>
