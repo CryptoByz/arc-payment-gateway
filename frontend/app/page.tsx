@@ -404,6 +404,12 @@ export default function Home() {
     const o = orders.find(x => x.id === id);
     if (!o) return;
 
+    const isLockedImmediately = (o.execute_at - o.created_at) < 24 * 3600;
+    if (isLockedImmediately) {
+      alert(t('cancelExpired'));
+      return;
+    }
+
     const secondsElapsed = Math.floor(Date.now() / 1000) - o.created_at;
     if (secondsElapsed > 24 * 3600) {
       alert(t('cancelExpired'));
@@ -637,7 +643,8 @@ export default function Home() {
                   let actionBtn = null;
 
                   if (o.status === 'pending') {
-                    if (cancelTimeLeft > 0) {
+                    const isLockedImmediately = (o.execute_at - o.created_at) < 24 * 3600;
+                    if (cancelTimeLeft > 0 && !isLockedImmediately) {
                       const absCancel = Math.abs(cancelTimeLeft);
                       const ch = Math.floor(absCancel / 3600);
                       const cm = Math.floor((absCancel % 3600) / 60);
