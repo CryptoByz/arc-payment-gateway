@@ -317,4 +317,114 @@
       margin-bottom: 5px;
       display: inline-block;
     }
+
+    /* PREMIUM RESPONSIVE MOBILE STYLES */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+      .header-content > div {
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 10px !important;
+        align-items: center;
+      }
+      .header-content > div > button,
+      .header-content > div > .btn {
+        width: 100% !important;
+        justify-content: center;
+      }
+      .logo {
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .top-status-content {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+        justify-content: center;
+      }
+      .gas-info {
+        justify-content: center;
+      }
+      
+      /* Cheque design mobile optimization */
+      .modal-content {
+        width: 95%;
+        padding: 20px 15px;
+      }
+      .cheque {
+        padding: 15px;
+        border-width: 2px;
+      }
+      .cheque::before {
+        font-size: 65px;
+      }
+      .cheque-body {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        text-align: left;
+      }
+      .cheque-amount-box {
+        width: 100%;
+        margin-top: 5px;
+        padding: 12px;
+        font-size: 22px;
+        order: -1; /* Place amount box at the top in mobile layout */
+      }
+      .cheque-footer {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        text-align: center;
+      }
+      .cheque-signature {
+        text-align: center;
+        width: 100%;
+      }
+      .cheque-signature-line {
+        width: 100%;
+        max-width: 200px;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .order-details {
+        grid-template-columns: 1fr;
+        gap: 8px 0;
+      }
+      .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .order-status {
+        align-self: flex-start;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .panel {
+        padding: 20px 15px;
+        border-radius: 12px;
+      }
+      .container {
+        padding: 0 12px;
+      }
+      .grid {
+        padding: 20px 0;
+        gap: 20px;
+      }
+      .logo {
+        font-size: 20px;
+      }
+      .panel-title {
+        font-size: 18px;
+      }
+    }
+
   
