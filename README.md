@@ -14,7 +14,7 @@ Users can deposit USDC or EURC and schedule future transfer instructions. The Pa
 ```
 
 1. **🔒 Secure Deposit:** The user calls `scheduleOrder()`, paying a standard network gas fee to lock their USDC safely in the smart contract (there are zero protocol commission fees). For flexibility, the user retains ownership to **cancel and refund** their funds within a 24-hour cancellation window. Consequently, orders scheduled to execute in less than 24 hours are locked immediately and cannot be cancelled. After 24 hours, the order is locked permanently to guarantee payment to the receiver.
-2. **🕒 Automated Execution:** The backend runs a lightweight polling loop. Once `block.timestamp >= executeAt`, it broadcasts `executeOrder(orderId)` using a relayer wallet, paying the gas fee on behalf of the user. Thus, the execution step is completely free of charge for the sender and receiver.
+2. **🕒 Automated Execution & Sync:** The backend runs a lightweight polling loop. Once `block.timestamp >= executeAt`, it broadcasts `executeOrder(orderId)` using a relayer wallet, paying the gas fee on behalf of the user. Thus, the execution step is completely free of charge for the sender and receiver. Additionally, all scheduled orders are synchronized in the backend database, enabling users to track and manage their active transfers seamlessly across any device or wallet connection.
 3. **🚫 Double-spending Protection:** Because tokens are held in escrow within the contract, there is zero risk of the user spending the funds before the execution date.
 
 ---
