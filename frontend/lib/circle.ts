@@ -1,4 +1,5 @@
 import { createPublicClient, defineChain } from 'viem';
+import { polygonAmoy } from 'viem/chains';
 import { 
   toCircleSmartAccount, 
   toModularTransport, 
@@ -44,7 +45,7 @@ export function getPublicClient() {
   const modularTransport = toModularTransport(`${CLIENT_URL}/polygonAmoy`, CLIENT_KEY);
   
   return createPublicClient({
-    chain: arcTestnet,
+    chain: polygonAmoy,
     transport: modularTransport,
   });
 }
