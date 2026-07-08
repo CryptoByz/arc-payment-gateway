@@ -1,7 +1,7 @@
 # PayWhen Scheduler | Zaman Kilitli Transfer Otomasyonu
 
 Trustless, on-chain time-locked payment scheduler built on the **ARC Network**. 
-Users can deposit USDC or EURC and schedule future transfer instructions using standard Web3 wallets like MetaMask, or onboard instantly using biometric Passkey Wallets (FaceID/Fingerprint) with no seed phrase required. The PayWhen Backend Relayer automatically triggers and executes the transaction on-chain once the deadline is reached, paying the gas fee.
+Users can deposit USDC or EURC and schedule future transfer instructions using standard Web3 wallets like MetaMask. The PayWhen Backend Relayer automatically triggers and executes the transaction on-chain once the deadline is reached, paying the gas fee.
 
 ---
 

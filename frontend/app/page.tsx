@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { isCircleEnabled, registerPasskeyWallet, loginPasskeyWallet } from '../lib/circle';
 
 const SCHEDULER_ADDRESS = '0x0e13299e56724Ce459e621b370f89552F87ede8B';
 const SCHEDULER_ABI = [
@@ -176,15 +175,6 @@ interface Order {
 export default function Home() {
   const [language, setLanguage] = useState<'tr' | 'en'>('tr');
   const [userAddress, setUserAddress] = useState<string | null>(null);
-  const [loginMethod, setLoginMethod] = useState<'ethers' | 'circle' | null>(null);
-  const [passkeyUsername, setPasskeyUsername] = useState('');
-  const [showPasskeyModal, setShowPasskeyModal] = useState(false);
-  const [circleEnabled, setCircleEnabled] = useState(false);
-  const [circleUsername, setCircleUsername] = useState<string | null>(null);
-
-  useEffect(() => {
-    setCircleEnabled(isCircleEnabled());
-  }, []);
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedTokenSymbol, setSelectedTokenSymbol] = useState<'USDC' | 'EURC'>('USDC');
   const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>('0x8172189cCE9b68F94Ee23fB5077748495B85098F');
@@ -281,7 +271,6 @@ export default function Home() {
         const provider = new ethers.providers.Web3Provider((window as any).ethereum);
         const accounts = await provider.send('eth_requestAccounts', []);
         setUserAddress(accounts[0]);
-        setLoginMethod('ethers');
       } catch (err: any) {
         alert(t('walletRejected'));
       }
@@ -292,50 +281,6 @@ export default function Home() {
 
   const disconnectWallet = () => {
     setUserAddress(null);
-    setLoginMethod(null);
-    setCircleUsername(null);
-  };
-
-  const handleCircleRegister = async () => {
-    if (!passkeyUsername) {
-      alert(t('enterUsername'));
-      return;
-    }
-    setLoading(true);
-    try {
-      const session = await registerPasskeyWallet(passkeyUsername);
-      setUserAddress(session.address);
-      setCircleUsername(session.username);
-      setLoginMethod('circle');
-      setShowPasskeyModal(false);
-      alert(t('passkeyCreated'));
-    } catch (err: any) {
-      console.error(err);
-      alert(`${t('circleRegError')}: ${err.message || err}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCircleLogin = async () => {
-    if (!passkeyUsername) {
-      alert(t('enterUsername'));
-      return;
-    }
-    setLoading(true);
-    try {
-      const session = await loginPasskeyWallet(passkeyUsername);
-      setUserAddress(session.address);
-      setCircleUsername(session.username);
-      setLoginMethod('circle');
-      setShowPasskeyModal(false);
-      alert(t('loginSuccess'));
-    } catch (err: any) {
-      console.error(err);
-      alert(`${t('circleLoginError')}: ${err.message || err}`);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const selectToken = (symbol: 'USDC' | 'EURC', address: string) => {
@@ -375,44 +320,37 @@ export default function Home() {
       let orderId = orders.length + 1;
       const executeTimeSec = Math.floor(new Date(executeAt).getTime() / 1000);
 
-      if (loginMethod === 'ethers') {
-        const provider = new ethers.providers.Web3Provider((window as any).ethereum);
-        const signer = provider.getSigner();
+      const provider = new ethers.providers.Web3Provider((window as any).ethereum);
+      const signer = provider.getSigner();
 
-        const schedulerContract = new ethers.Contract(SCHEDULER_ADDRESS, SCHEDULER_ABI, signer);
-        const tokenContract = new ethers.Contract(selectedTokenAddress, ERC20_ABI, signer);
+      const schedulerContract = new ethers.Contract(SCHEDULER_ADDRESS, SCHEDULER_ABI, signer);
+      const tokenContract = new ethers.Contract(selectedTokenAddress, ERC20_ABI, signer);
 
-        const parsedAmount = ethers.utils.parseUnits(amount, 6); // USDC/EURC has 6 decimals on ARC
+      const parsedAmount = ethers.utils.parseUnits(amount, 6); // USDC/EURC has 6 decimals on ARC
 
-        // Check allowance
-        const currentAllowance = await tokenContract.allowance(userAddress!, SCHEDULER_ADDRESS);
-        if (currentAllowance.lt(parsedAmount)) {
-          console.log('Requesting token approval...');
-          const approveTx = await tokenContract.approve(SCHEDULER_ADDRESS, parsedAmount);
-          await approveTx.wait();
-          console.log('Token approved successfully!');
-        }
+      // Check allowance
+      const currentAllowance = await tokenContract.allowance(userAddress!, SCHEDULER_ADDRESS);
+      if (currentAllowance.lt(parsedAmount)) {
+        console.log('Requesting token approval...');
+        const approveTx = await tokenContract.approve(SCHEDULER_ADDRESS, parsedAmount);
+        await approveTx.wait();
+        console.log('Token approved successfully!');
+      }
 
-        console.log('Sending schedule order tx...');
-        const scheduleTx = await schedulerContract.scheduleOrder(
-          selectedTokenAddress,
-          receiverAddress,
-          parsedAmount,
-          executeTimeSec
-        );
-        
-        const receipt = await scheduleTx.wait();
-        
-        // Parse orderId from events
-        const orderScheduledEvent = receipt.events?.find((x: any) => x.event === 'OrderScheduled');
-        if (orderScheduledEvent && orderScheduledEvent.args) {
-          orderId = orderScheduledEvent.args.orderId.toNumber();
-        }
-      } else {
-        // Circle Smart Account Path
-        console.log('Circle Passkey transaction signing...');
-        // Generate a random high-entropy integer ID for the smart account simulation
-        orderId = Math.floor(Math.random() * 900000) + 100000;
+      console.log('Sending schedule order tx...');
+      const scheduleTx = await schedulerContract.scheduleOrder(
+        selectedTokenAddress,
+        receiverAddress,
+        parsedAmount,
+        executeTimeSec
+      );
+      
+      const receipt = await scheduleTx.wait();
+      
+      // Parse orderId from events
+      const orderScheduledEvent = receipt.events?.find((x: any) => x.event === 'OrderScheduled');
+      if (orderScheduledEvent && orderScheduledEvent.args) {
+        orderId = orderScheduledEvent.args.orderId.toNumber();
       }
 
       const newOrder: Order = {
@@ -474,16 +412,12 @@ export default function Home() {
 
     setLoading(true);
     try {
-      if (loginMethod === 'ethers') {
-        const provider = new ethers.providers.Web3Provider((window as any).ethereum);
-        const signer = provider.getSigner();
+      const provider = new ethers.providers.Web3Provider((window as any).ethereum);
+      const signer = provider.getSigner();
 
-        const schedulerContract = new ethers.Contract(SCHEDULER_ADDRESS, SCHEDULER_ABI, signer);
-        const tx = await schedulerContract.cancelOrder(id);
-        await tx.wait();
-      } else {
-        console.log('Circle Passkey cancellation signature requested...');
-      }
+      const schedulerContract = new ethers.Contract(SCHEDULER_ADDRESS, SCHEDULER_ABI, signer);
+      const tx = await schedulerContract.cancelOrder(id);
+      await tx.wait();
 
       // Update SQLite status via backend API
       try {
@@ -577,17 +511,8 @@ export default function Home() {
           {userAddress ? (
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
-                {loginMethod === 'circle' ? (
-                  <>
-                    <i className="fa-solid fa-fingerprint" style={{ color: 'var(--primary)', marginRight: '6px' }}></i>
-                    <strong>{circleUsername}</strong> (Smart Wallet)
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-wallet" style={{ color: 'var(--accent)', marginRight: '6px' }}></i>
-                    MetaMask
-                  </>
-                )}
+                <i className="fa-solid fa-wallet" style={{ color: 'var(--accent)', marginRight: '6px' }}></i>
+                Wallet Connected
               </span>
               <span className="gas-badge" style={{ fontSize: '12px', background: 'rgba(255,255,255,0.06)', color: '#fff', border: '1px solid var(--border)' }}>
                 {userAddress.substring(0, 6)}...{userAddress.substring(38)}
@@ -598,11 +523,8 @@ export default function Home() {
             </div>
           ) : (
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <button className="btn btn-outline" style={{ width: 'auto' }} onClick={connectWallet}>
+              <button className="btn btn-primary" style={{ width: 'auto' }} onClick={connectWallet}>
                 <i className="fa-solid fa-wallet"></i> {t('connectMetaMask')}
-              </button>
-              <button className="btn btn-primary" style={{ width: 'auto' }} onClick={() => setShowPasskeyModal(true)}>
-                <i className="fa-solid fa-fingerprint"></i> {t('biometricWallet')}
               </button>
             </div>
           )}
@@ -872,45 +794,6 @@ export default function Home() {
                   <div>{t('protocolGuarantee')}</div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PASSKEY AUTH MODAL */}
-      {showPasskeyModal && (
-        <div className="modal" style={{ display: 'flex', zIndex: 1100 }} onClick={e => e.target === e.currentTarget && setShowPasskeyModal(false)}>
-          <div className="modal-content" style={{ maxWidth: '400px', padding: '30px' }}>
-            <span className="close-modal" onClick={() => setShowPasskeyModal(false)}>&times;</span>
-            <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: '20px', marginBottom: '15px', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="fa-solid fa-fingerprint" style={{ color: 'var(--primary)' }}></i> {t('passkeyTitle')}
-            </h2>
-            
-            {!circleEnabled && (
-              <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '12px', fontSize: '12px', color: 'var(--primary)', marginBottom: '20px', lineHeight: '1.5' }}>
-                <i className="fa-solid fa-circle-info"></i> <strong>{t('warning')}:</strong> {t('passkeySimWarning')}
-              </div>
-            )}
-
-            <div className="form-group" style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '6px' }}>{t('usernameLabel')}</label>
-              <input
-                type="text"
-                placeholder={t('usernamePlaceholder')}
-                value={passkeyUsername}
-                onChange={e => setPasskeyUsername(e.target.value)}
-                required
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button className="btn btn-primary" onClick={handleCircleRegister} disabled={loading} style={{ background: 'var(--primary)', color: '#000' }}>
-                <i className="fa-solid fa-user-plus"></i> {t('createPasskey')}
-              </button>
-              <button className="btn btn-outline" onClick={handleCircleLogin} disabled={loading}>
-                <i className="fa-solid fa-key"></i> {t('loginPasskey')}
-              </button>
             </div>
           </div>
         </div>
