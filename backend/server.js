@@ -4,7 +4,7 @@ import cors from 'cors';
 import { ethers } from 'ethers';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { initDb, saveOrder, getOrders, updateOrderStatus } from './database.js';
+import { initDb, saveOrder, getOrders, updateOrderStatus, getGlobalStats, getRecentOrders } from './database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -160,6 +160,28 @@ app.get('/api/status', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// GET global statistics for dashboard
+app.get('/api/stats', async (req, res) => {
+  try {
+    const stats = await getGlobalStats();
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET recent global orders for dashboard list
+app.get('/api/stats/recent', async (req, res) => {
+  try {
+    const recent = await getRecentOrders(15);
+    res.json(recent);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 // GET user orders (persistent)
 app.get('/api/orders', async (req, res) => {

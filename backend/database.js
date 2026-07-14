@@ -90,3 +90,62 @@ export function updateOrderStatus(id, status) {
     });
   });
 }
+
+export function getGlobalStats() {
+  return new Promise((resolve, reject) => {
+    db.all(`SELECT * FROM orders`, [], (err, rows) => {
+      if (err) {
+        console.error('Error getting global stats:', err.message);
+        reject(err);
+      } else {
+        const totalTx = rows.length;
+        const executedTx = rows.filter(r => r.status === 'executed').length;
+        const cancelledTx = rows.filter(r => r.status === 'cancelled').length;
+        const pendingTx = rows.filter(r => r.status === 'pending').length;
+
+        const wallets = new Set();
+        rows.forEach(r => {
+          if (r.sender) wallets.add(r.sender.toLowerCase());
+          if (r.receiver) wallets.add(r.receiver.toLowerCase());
+        });
+        const uniqueWalletsCount = wallets.size;
+
+        const volumes = {};
+        rows.forEach(r => {
+          const sym = r.token_symbol || 'USDC';
+          if (!volumes[sym]) {
+            volumes[sym] = { scheduled: 0, executed: 0 };
+          }
+          volumes[sym].scheduled += r.amount;
+          if (r.status === 'executed') {
+            volumes[sym].executed += r.amount;
+          }
+        });
+
+        resolve({
+          totalTx,
+          executedTx,
+          cancelledTx,
+          pendingTx,
+          uniqueWalletsCount,
+          volumes
+        });
+      }
+    });
+  });
+}
+
+export function getRecentOrders(limit = 10) {
+  return new Promise((resolve, reject) => {
+    db.all(`SELECT * FROM orders ORDER BY id DESC LIMIT ?`, [limit], (err, rows) => {
+      if (err) {
+        console.error('Error getting recent orders:', err.message);
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+}
+
+
