@@ -187,7 +187,7 @@
       z-index: 1000;
       justify-content: center;
       align-items: center;
-      backdrop-filter: blur(8px);
+      /* backdrop-filter: blur(8px); -- Disabled to prevent screen capture/recorder freeze issues */
     }
     .modal-content {
       background: #0f172a;
@@ -428,7 +428,7 @@
     }
 
     .contact-item:hover {
-      background: rgba(147, 51, 234, 0.15) !important;
+      background: rgba(245, 158, 11, 0.15) !important;
     }
 
     .preset-btn {
@@ -443,9 +443,18 @@
       transition: all 0.2s ease;
     }
     .preset-btn:hover {
-      background: rgba(147, 51, 234, 0.15);
+      background: rgba(245, 158, 11, 0.15);
       border-color: var(--primary);
       color: #fff;
+    }
+
+    .calendar-day:hover:not(:disabled) {
+      background: rgba(245, 158, 11, 0.1) !important;
+      color: var(--primary) !important;
+    }
+    .calendar-day.selected:hover {
+      background: var(--primary) !important;
+      color: #000 !important;
     }
 
   

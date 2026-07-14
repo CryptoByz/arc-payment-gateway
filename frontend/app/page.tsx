@@ -197,11 +197,16 @@ export default function Home() {
   const [userAddress, setUserAddress] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedTokenSymbol, setSelectedTokenSymbol] = useState<'USDC' | 'EURC'>('USDC');
-  const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>('0x8172189cCE9b68F94Ee23fB5077748495B85098F');
+  const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>('0x3600000000000000000000000000000000000000');
   const [receiverAddress, setReceiverAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [executeDate, setExecuteDate] = useState('');
   const [executeTimeStr, setExecuteTimeStr] = useState('');
+  const [showDatePickerModal, setShowDatePickerModal] = useState(false);
+  const [navDate, setNavDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedHour, setSelectedHour] = useState('12');
+  const [selectedMinute, setSelectedMinute] = useState('00');
   const [relayerGas, setRelayerGas] = useState('Yükleniyor...');
   const [serverStatus, setServerStatus] = useState<'active' | 'offline'>('active');
   const [loading, setLoading] = useState(false);
@@ -209,6 +214,8 @@ export default function Home() {
   // Modals state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successModalMsg, setSuccessModalMsg] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMsg, setErrorModalMsg] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showChequeModal, setShowChequeModal] = useState(false);
   const [activeCheque, setActiveCheque] = useState<Order | null>(null);
@@ -252,12 +259,12 @@ export default function Home() {
     e.preventDefault();
     if (!newContactName.trim() || !newContactAddress.trim()) return;
     if (!ethers.utils.isAddress(newContactAddress)) {
-      alert(language === 'tr' ? 'Geçersiz cüzdan adresi!' : 'Invalid wallet address!');
+      showError(language === 'tr' ? 'Geçersiz cüzdan adresi!' : 'Invalid wallet address!');
       return;
     }
     const existing = addressBook.find(x => x.address.toLowerCase() === newContactAddress.toLowerCase());
     if (existing) {
-      alert(language === 'tr' ? 'Bu adres zaten kayıtlı!' : 'This address is already saved!');
+      showError(language === 'tr' ? 'Bu adres zaten kayıtlı!' : 'This address is already saved!');
       return;
     }
     const newBook = [...addressBook, { name: newContactName, address: newContactAddress }];
@@ -273,6 +280,74 @@ export default function Home() {
     const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     setExecuteDate(dateStr);
     setExecuteTimeStr(timeStr);
+  };
+
+  const showError = (msg: string) => {
+    setErrorModalMsg(msg);
+    setShowErrorModal(true);
+  };
+
+  const openDateTimePicker = () => {
+    let initialDate = new Date();
+    if (executeDate) {
+      const parts = executeDate.split('-');
+      if (parts.length === 3) {
+        initialDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      }
+    } else {
+      initialDate.setDate(initialDate.getDate() + 1);
+    }
+    
+    let initialHour = '12';
+    let initialMinute = '00';
+    if (executeTimeStr) {
+      const parts = executeTimeStr.split(':');
+      if (parts.length === 2) {
+        initialHour = parts[0];
+        initialMinute = parts[1];
+      }
+    }
+
+    setSelectedDate(initialDate);
+    setNavDate(new Date(initialDate.getFullYear(), initialDate.getMonth(), 1));
+    setSelectedHour(initialHour);
+    setSelectedMinute(initialMinute);
+    setShowDatePickerModal(true);
+  };
+
+  const formatDateTime = (dateStr: string, timeStr: string) => {
+    if (!dateStr || !timeStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return '';
+    const year = parts[0];
+    const monthIdx = parseInt(parts[1]) - 1;
+    const day = parts[2];
+    
+    const monthsTr = [
+      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    ];
+    const monthsEn = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    
+    const monthName = language === 'tr' ? monthsTr[monthIdx] : monthsEn[monthIdx];
+    
+    if (language === 'tr') {
+      return `${day} ${monthName} ${year}, ${timeStr}`;
+    } else {
+      return `${monthName} ${day}, ${year} at ${timeStr}`;
+    }
+  };
+
+  const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (year: number, month: number) => {
+    const day = new Date(year, month, 1).getDay();
+    return day === 0 ? 6 : day - 1;
   };
 
   const t = (key: keyof typeof translations.tr) => {
@@ -392,16 +467,16 @@ export default function Home() {
         
         const isCorrectNetwork = await ensureArcTestnet();
         if (!isCorrectNetwork) {
-          alert(t('switchNetworkError'));
+          showError(t('switchNetworkError'));
           return;
         }
         
         setUserAddress(accounts[0]);
       } catch (err: any) {
-        alert(t('walletRejected'));
+        showError(t('walletRejected'));
       }
     } else {
-      alert(t('metamaskNotFound'));
+      showError(t('metamaskNotFound'));
     }
   };
 
@@ -420,19 +495,19 @@ export default function Home() {
   const scheduleTransferSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!userAddress) {
-      alert(t('connectWalletFirst'));
+      showError(t('connectWalletFirst'));
       return;
     }
 
     const executeDateTime = executeDate && executeTimeStr ? `${executeDate}T${executeTimeStr}` : '';
     if (!executeDateTime) {
-      alert(t('selectFutureTime'));
+      showError(t('selectFutureTime'));
       return;
     }
 
     const executeTime = new Date(executeDateTime).getTime();
     if (executeTime <= Date.now()) {
-      alert(t('selectFutureTime'));
+      showError(t('selectFutureTime'));
       return;
     }
 
@@ -451,7 +526,7 @@ export default function Home() {
     try {
       const isCorrectNetwork = await ensureArcTestnet();
       if (!isCorrectNetwork) {
-        alert(t('switchNetworkError'));
+        showError(t('switchNetworkError'));
         setLoading(false);
         return;
       }
@@ -535,7 +610,7 @@ export default function Home() {
       setExecuteTimeStr('');
     } catch (err: any) {
       console.error(err);
-      alert(`${t('errorPrefix')}: ${err.message || err}`);
+      showError(`${t('errorPrefix')}: ${err.message || err}`);
     } finally {
       setLoading(false);
     }
@@ -547,13 +622,13 @@ export default function Home() {
 
     const isLockedImmediately = (o.execute_at - o.created_at) < 24 * 3600;
     if (isLockedImmediately) {
-      alert(t('cancelExpired'));
+      showError(t('cancelExpired'));
       return;
     }
 
     const secondsElapsed = Math.floor(Date.now() / 1000) - o.created_at;
     if (secondsElapsed > 24 * 3600) {
-      alert(t('cancelExpired'));
+      showError(t('cancelExpired'));
       return;
     }
 
@@ -561,7 +636,7 @@ export default function Home() {
     try {
       const isCorrectNetwork = await ensureArcTestnet();
       if (!isCorrectNetwork) {
-        alert(t('switchNetworkError'));
+        showError(t('switchNetworkError'));
         setLoading(false);
         return;
       }
@@ -588,7 +663,7 @@ export default function Home() {
       setShowSuccessModal(true);
     } catch (err: any) {
       console.error(err);
-      alert(`${t('errorPrefix')}: ${err.message || err}`);
+      showError(`${t('errorPrefix')}: ${err.message || err}`);
     } finally {
       setLoading(false);
     }
@@ -702,7 +777,7 @@ export default function Home() {
                     type="button"
                     className={`token-btn ${selectedTokenSymbol === 'USDC' ? 'active' : ''}`}
                     onClick={() =>
-                      selectToken('USDC', '0x8172189cCE9b68F94Ee23fB5077748495B85098F')
+                      selectToken('USDC', '0x3600000000000000000000000000000000000000')
                     }
                   >
                     USDC
@@ -711,7 +786,7 @@ export default function Home() {
                     type="button"
                     className={`token-btn ${selectedTokenSymbol === 'EURC' ? 'active' : ''}`}
                     onClick={() =>
-                      selectToken('EURC', '0xe2935B5077748495B85098F8172189cCE9b68F94')
+                      selectToken('EURC', '0x3700000000000000000000000000000000000000')
                     }
                   >
                     EURC
@@ -751,7 +826,7 @@ export default function Home() {
                         if (name) {
                           const existing = addressBook.find(x => x.address.toLowerCase() === receiverAddress.toLowerCase());
                           if (existing) {
-                            alert(language === 'tr' ? 'Bu adres zaten kayıtlı!' : 'This address is already saved!');
+                            showError(language === 'tr' ? 'Bu adres zaten kayıtlı!' : 'This address is already saved!');
                             return;
                           }
                           const newBook = [...addressBook, { name, address: receiverAddress }];
@@ -783,22 +858,34 @@ export default function Home() {
 
               <div className="form-group">
                 <label>{t('executeDateTime')}</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <input
-                    type="date"
-                    value={executeDate}
-                    onChange={e => setExecuteDate(e.target.value)}
-                    required
-                    style={{ flex: 1 }}
-                  />
-                  <input
-                    type="time"
-                    value={executeTimeStr}
-                    onChange={e => setExecuteTimeStr(e.target.value)}
-                    required
-                    style={{ flex: 1 }}
-                  />
-                </div>
+                <button
+                  type="button"
+                  onClick={openDateTimePicker}
+                  className="datetime-trigger"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid var(--border)',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    width: '100%',
+                    textAlign: 'left',
+                    transition: 'all 0.2s',
+                    minHeight: '46px'
+                  }}
+                >
+                  <span style={{ color: executeDate && executeTimeStr ? '#fff' : 'var(--text-muted)' }}>
+                    {executeDate && executeTimeStr 
+                      ? formatDateTime(executeDate, executeTimeStr) 
+                      : (language === 'tr' ? 'Tarih ve Saat Seçin...' : 'Select Date & Time...')}
+                  </span>
+                  <i className="fa-regular fa-calendar-days" style={{ color: 'var(--primary)', fontSize: '16px' }}></i>
+                </button>
                 
                 {/* Presets Grid */}
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
@@ -807,35 +894,35 @@ export default function Home() {
                     className="preset-btn"
                     onClick={() => setPresetTime(1)}
                   >
-                    +1 Saat (Hour)
+                    {language === 'tr' ? '+1 Saat' : '+1 Hour'}
                   </button>
                   <button
                     type="button"
                     className="preset-btn"
                     onClick={() => setPresetTime(6)}
                   >
-                    +6 Saat (Hours)
+                    {language === 'tr' ? '+6 Saat' : '+6 Hours'}
                   </button>
                   <button
                     type="button"
                     className="preset-btn"
                     onClick={() => setPresetTime(24)}
                   >
-                    +24 Saat (1 Gün)
+                    {language === 'tr' ? '+24 Saat (1 Gün)' : '+24 Hours (1 Day)'}
                   </button>
                   <button
                     type="button"
                     className="preset-btn"
                     onClick={() => setPresetTime(72)}
                   >
-                    +72 Saat (3 Gün)
+                    {language === 'tr' ? '+72 Saat (3 Gün)' : '+72 Hours (3 Days)'}
                   </button>
                   <button
                     type="button"
                     className="preset-btn"
                     onClick={() => setPresetTime(168)}
                   >
-                    +1 Hafta (Week)
+                    {language === 'tr' ? '+1 Hafta' : '+1 Week'}
                   </button>
                 </div>
               </div>
@@ -1145,6 +1232,267 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* DATE & TIME PICKER MODAL */}
+      {showDatePickerModal && (
+        <div className="modal" style={{ display: 'flex', zIndex: 1150 }} onClick={e => e.target === e.currentTarget && setShowDatePickerModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '460px', display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflowY: 'auto' }}>
+            <span className="close-modal" onClick={() => setShowDatePickerModal(false)}>&times;</span>
+            <h2 className="panel-title" style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className="fa-regular fa-calendar-days" style={{ color: 'var(--primary)' }}></i>
+              {language === 'tr' ? 'Tarih ve Saat Seç' : 'Select Date & Time'}
+            </h2>
+
+            {/* Calendar Controls */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ width: 'auto', padding: '6px 12px', fontSize: '13px' }}
+                onClick={() => {
+                  const prevMonth = new Date(navDate.getFullYear(), navDate.getMonth() - 1, 1);
+                  setNavDate(prevMonth);
+                }}
+              >
+                &larr; {language === 'tr' ? 'Geri' : 'Prev'}
+              </button>
+              <span style={{ fontWeight: 700, fontSize: '15px', color: '#fff' }}>
+                {navDate.toLocaleString(language === 'tr' ? 'tr-TR' : 'en-US', { month: 'long', year: 'numeric' })}
+              </span>
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ width: 'auto', padding: '6px 12px', fontSize: '13px' }}
+                onClick={() => {
+                  const nextMonth = new Date(navDate.getFullYear(), navDate.getMonth() + 1, 1);
+                  setNavDate(nextMonth);
+                }}
+              >
+                {language === 'tr' ? 'İleri' : 'Next'} &rarr;
+              </button>
+            </div>
+
+            {/* Calendar Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', justifyItems: 'center', marginTop: '10px' }}>
+              {/* Weekday Labels */}
+              {(language === 'tr' ? ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']).map((wDay, idx) => (
+                <div key={`wday-${idx}`} style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, width: '40px', textAlign: 'center', paddingBottom: '5px' }}>
+                  {wDay}
+                </div>
+              ))}
+
+              {/* Pad empty days */}
+              {Array.from({ length: getFirstDayOfMonth(navDate.getFullYear(), navDate.getMonth()) }).map((_, idx) => (
+                <div key={`empty-${idx}`} style={{ width: '40px', height: '40px' }}></div>
+              ))}
+
+              {/* Month Days */}
+              {Array.from({ length: getDaysInMonth(navDate.getFullYear(), navDate.getMonth()) }).map((_, idx) => {
+                const day = idx + 1;
+                const year = navDate.getFullYear();
+                const month = navDate.getMonth();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const cellDate = new Date(year, month, day);
+                const isDisabled = cellDate < today;
+                const isSelected = selectedDate &&
+                  selectedDate.getDate() === day &&
+                  selectedDate.getMonth() === month &&
+                  selectedDate.getFullYear() === year;
+
+                return (
+                  <button
+                    key={`day-${day}`}
+                    type="button"
+                    disabled={isDisabled}
+                    className={`calendar-day ${isSelected ? 'selected' : ''}`}
+                    onClick={() => setSelectedDate(new Date(year, month, day))}
+                    style={{
+                      width: '38px',
+                      height: '38px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: isSelected ? 'var(--primary)' : 'transparent',
+                      color: isSelected ? '#000' : (isDisabled ? 'var(--text-muted)' : '#fff'),
+                      cursor: isDisabled ? 'not-allowed' : 'pointer',
+                      fontWeight: isSelected ? '700' : '500',
+                      transition: 'all 0.2s',
+                      opacity: isDisabled ? 0.25 : 1
+                    }}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Time Selector Dropdowns */}
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '15px', padding: '15px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
+                <label style={{ fontSize: '12px', fontWeight: 600 }}>{language === 'tr' ? 'Saat' : 'Hour'}</label>
+                <select
+                  value={selectedHour}
+                  onChange={e => setSelectedHour(e.target.value)}
+                  style={{ width: '100%', background: 'var(--bg-panel)', border: '1px solid var(--border)', color: '#fff', borderRadius: '6px', padding: '8px 12px' }}
+                >
+                  {Array.from({ length: 24 }).map((_, h) => {
+                    const val = String(h).padStart(2, '0');
+                    return <option key={val} value={val}>{val}</option>;
+                  })}
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
+                <label style={{ fontSize: '12px', fontWeight: 600 }}>{language === 'tr' ? 'Dakika' : 'Minute'}</label>
+                <select
+                  value={selectedMinute}
+                  onChange={e => setSelectedMinute(e.target.value)}
+                  style={{ width: '100%', background: 'var(--bg-panel)', border: '1px solid var(--border)', color: '#fff', borderRadius: '6px', padding: '8px 12px' }}
+                >
+                  {Array.from({ length: 60 }).map((_, m) => {
+                    const val = String(m).padStart(2, '0');
+                    return <option key={val} value={val}>{val}</option>;
+                  })}
+                </select>
+              </div>
+            </div>
+
+            {/* Quick Presets Grid inside modal */}
+            <div style={{ marginTop: '5px', paddingBottom: '15px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>
+                {language === 'tr' ? 'Hızlı Seçim Şablonları' : 'Quick Presets'}
+              </label>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {[
+                  { label: '+1 Saat', labelEn: '+1 Hour', value: 1 },
+                  { label: '+6 Saat', labelEn: '+6 Hours', value: 6 },
+                  { label: '+24 Saat', labelEn: '+24 Hours', value: 24 },
+                  { label: '+3 Gün', labelEn: '+3 Days', value: 72 },
+                  { label: '+1 Hafta', labelEn: '+1 Week', value: 168 }
+                ].map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => {
+                      setPresetTime(preset.value);
+                      setShowDatePickerModal(false);
+                    }}
+                  >
+                    {language === 'tr' ? preset.label : preset.labelEn}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Selected Date Summary & Save */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {selectedDate && (
+                <div style={{ fontSize: '13px', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.1)', padding: '10px', borderRadius: '6px', color: 'var(--primary)', textAlign: 'center', fontWeight: 600 }}>
+                  {language === 'tr' ? 'Seçilen:' : 'Selected:'} {formatDateTime(
+                    `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`,
+                    `${selectedHour}:${selectedMinute}`
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={{ flex: 1 }}
+                  onClick={() => setShowDatePickerModal(false)}
+                >
+                  {language === 'tr' ? 'İptal' : 'Cancel'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    if (!selectedDate) return;
+                    const pad = (n: number) => String(n).padStart(2, '0');
+                    const dateStr = `${selectedDate.getFullYear()}-${pad(selectedDate.getMonth() + 1)}-${pad(selectedDate.getDate())}`;
+                    const timeStr = `${pad(parseInt(selectedHour))}:${pad(parseInt(selectedMinute))}`;
+                    const execTime = new Date(`${dateStr}T${timeStr}`).getTime();
+                    if (execTime <= Date.now()) {
+                      showError(language === 'tr' ? 'Lütfen gelecekteki bir tarih ve saat seçin!' : 'Please select a future date and time!');
+                      return;
+                    }
+                    setExecuteDate(dateStr);
+                    setExecuteTimeStr(timeStr);
+                    setShowDatePickerModal(false);
+                  }}
+                >
+                  {language === 'tr' ? 'Onayla' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ERROR MODAL */}
+      {showErrorModal && (
+        <div className="modal" style={{ display: 'flex', zIndex: 1200 }} onClick={e => e.target === e.currentTarget && setShowErrorModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '450px', textAlign: 'center', padding: '40px 35px', borderColor: 'var(--danger)' }}>
+            <span className="close-modal" onClick={() => setShowErrorModal(false)}>&times;</span>
+            <div style={{ width: '70px', height: '70px', background: 'rgba(239,68,68,0.15)', border: '2px solid var(--danger)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '28px', color: 'var(--danger)' }}>
+              <i className="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: '22px', marginBottom: '10px', color: '#fff' }}>
+              {language === 'tr' ? 'Hata Oluştu' : 'Error Occurred'}
+            </h2>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              padding: '15px',
+              marginBottom: '25px',
+              textAlign: 'left',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              fontSize: '13px',
+              fontFamily: 'monospace',
+              color: '#f8fafc',
+              wordBreak: 'break-all',
+              userSelect: 'all'
+            }}>
+              {errorModalMsg}
+            </div>
+            
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  navigator.clipboard.writeText(errorModalMsg);
+                  const btn = document.getElementById('copy-err-btn');
+                  if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = language === 'tr' ? '<i class="fa-solid fa-check"></i> Kopyalandı!' : '<i class="fa-solid fa-check"></i> Copied!';
+                    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+                  }
+                }}
+                id="copy-err-btn"
+                style={{ flex: 1 }}
+              >
+                <i className="fa-regular fa-copy"></i> {language === 'tr' ? 'Kopyala' : 'Copy'}
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowErrorModal(false)}
+                style={{ flex: 1, background: 'var(--danger)', color: '#fff' }}
+              >
+                {language === 'tr' ? 'Kapat' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
+
+

@@ -18,8 +18,8 @@ PayWhen consists of:
 - **Network**: ARC Testnet (Chain ID: `5042002`)
 - **Scheduler Contract Address**: `0x0e13299e56724Ce459e621b370f89552F87ede8B`
 - **Supported Tokens**:
-  - **USDC**: `0x8172189cCE9b68F94Ee23fB5077748495B85098F` (6 Decimals)
-  - **EURC**: `0xe2935B5077748495B85098F8172189cCE9b68F94` (6 Decimals)
+  - **USDC**: `0x3600000000000000000000000000000000000000` (6 Decimals)
+  - **EURC**: `0x3700000000000000000000000000000000000000` (6 Decimals)
 
 ### Solidity ABI for Agents:
 ```json
@@ -52,7 +52,7 @@ The backend provides a live endpoint showing full tool specs at:
        "receiver": "0xReceiverAddress...",
        "amount": 25.5,
        "token_symbol": "USDC",
-       "token_address": "0x8172189cCE9b68F94Ee23fB5077748495B85098F",
+       "token_address": "0x3600000000000000000000000000000000000000",
        "execute_at": 1783260000,
        "created_at": 1783173600,
        "status": "pending"
@@ -77,7 +77,7 @@ RPC_URL = "https://rpc.testnet.arc.network"
 SCHEDULER_ADDRESS = "0x0e13299e56724Ce459e621b370f89552F87ede8B"
 API_BASE_URL = "https://api.paywhen.xyz"
 
-USDC_ADDRESS = "0x8172189cCE9b68F94Ee23fB5077748495B85098F"
+USDC_ADDRESS = "0x3600000000000000000000000000000000000000"
 DECIMALS = 6
 
 w3 = Web3(Web3.HTTPProvider(RPC_URL))
