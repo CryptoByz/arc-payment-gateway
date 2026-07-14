@@ -317,152 +317,113 @@ export default function Dashboard() {
           </div>
         ) : stats ? (
           <div className="space-y-8">
-            {/* Top Stat Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Stat 1: Volume */}
-              <div className="relative group overflow-hidden border border-slate-800/50 rounded-2xl bg-gradient-to-b from-slate-900/40 to-slate-950/40 p-6 backdrop-blur-md transition-all hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-all" />
-                <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider block mb-2">
-                  {t('totalVolume')}
-                </span>
-                <span className="text-3xl font-extrabold text-white tracking-tight">
-                  {usdcStats.executed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-base font-bold text-indigo-400">USDC</span>
-                </span>
-                <div className="mt-4 pt-4 border-t border-slate-800/40 flex justify-between text-xs text-slate-400">
-                  <span>{t('scheduledVolume')}:</span>
-                  <span className="font-mono text-slate-300">
-                    {usdcStats.scheduled.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
-                  </span>
-                </div>
-              </div>
+            {/* General Statistics Table */}
+            <div className="border border-slate-800/50 rounded-2xl bg-gradient-to-b from-slate-900/40 to-slate-950/40 p-6 backdrop-blur-md">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <span className="w-2.5 h-5 bg-indigo-500 rounded-sm inline-block shadow-sm shadow-indigo-500/50" />
+                {language === 'tr' ? 'Genel Protokol İstatistikleri' : 'Global Protocol Statistics'}
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      <th className="py-3 px-4">{language === 'tr' ? 'Metrik' : 'Metric'}</th>
+                      <th className="py-3 px-4 text-right">{language === 'tr' ? 'Değer' : 'Value'}</th>
+                      <th className="py-3 px-4">{language === 'tr' ? 'Açıklama / Durum' : 'Description / Status'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm font-medium">
+                    <tr className="border-b border-slate-900 hover:bg-slate-900/10 transition-colors">
+                      <td className="py-4 px-4 text-slate-200 font-bold">{language === 'tr' ? 'Toplam USDC Hacmi' : 'Total USDC Volume'}</td>
+                      <td className="py-4 px-4 text-right font-mono text-white text-base font-extrabold">
+                        {usdcStats.executed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC
+                      </td>
+                      <td className="py-4 px-4 text-xs text-slate-400">
+                        {language === 'tr' 
+                          ? `Başarıyla transfer edilen miktar (Planlanan toplam: ${usdcStats.scheduled.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC)`
+                          : `Successfully transferred volume (Total scheduled: ${usdcStats.scheduled.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC)`}
+                      </td>
+                    </tr>
 
-              {/* Stat 2: Unique Wallets */}
-              <div className="relative group overflow-hidden border border-slate-800/50 rounded-2xl bg-gradient-to-b from-slate-900/40 to-slate-950/40 p-6 backdrop-blur-md transition-all hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/5 hover:-translate-y-0.5">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/10 transition-all" />
-                <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider block mb-2">
-                  {t('uniqueWallets')}
-                </span>
-                <span className="text-3xl font-extrabold text-white tracking-tight">
-                  {stats.uniqueWalletsCount}
-                </span>
-                <div className="mt-4 pt-4 border-t border-slate-800/40 flex justify-between text-xs text-slate-400">
-                  <span>Adres Sayısı:</span>
-                  <span className="font-mono text-slate-300">TR / EN Cüzdan</span>
-                </div>
-              </div>
+                    <tr className="border-b border-slate-900 hover:bg-slate-900/10 transition-colors">
+                      <td className="py-4 px-4 text-slate-200 font-bold">{language === 'tr' ? 'Toplam EURC Hacmi' : 'Total EURC Volume'}</td>
+                      <td className="py-4 px-4 text-right font-mono text-white text-base font-extrabold">
+                        {(stats?.volumes?.['EURC']?.executed || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EURC
+                      </td>
+                      <td className="py-4 px-4 text-xs text-slate-400">
+                        {language === 'tr' 
+                          ? `Başarıyla transfer edilen miktar (Planlanan toplam: ${(stats?.volumes?.['EURC']?.scheduled || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} EURC)`
+                          : `Successfully transferred volume (Total scheduled: ${(stats?.volumes?.['EURC']?.scheduled || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} EURC)`}
+                      </td>
+                    </tr>
 
-              {/* Stat 3: Total Transactions */}
-              <div className="relative group overflow-hidden border border-slate-800/50 rounded-2xl bg-gradient-to-b from-slate-900/40 to-slate-950/40 p-6 backdrop-blur-md transition-all hover:border-pink-500/30 hover:shadow-lg hover:shadow-pink-500/5 hover:-translate-y-0.5">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl group-hover:bg-pink-500/10 transition-all" />
-                <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider block mb-2">
-                  {t('totalTx')}
-                </span>
-                <span className="text-3xl font-extrabold text-white tracking-tight">
-                  {stats.totalTx}
-                </span>
-                <div className="mt-4 pt-4 border-t border-slate-800/40 flex justify-between text-xs text-slate-400">
-                  <span>{t('successRate')}:</span>
-                  <span className="font-semibold text-emerald-400">
-                    %{successRate}
-                  </span>
-                </div>
-              </div>
-            </div>
+                    <tr className="border-b border-slate-900 hover:bg-slate-900/10 transition-colors">
+                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Toplam Planlanan Emir' : 'Total Scheduled Orders'}</td>
+                      <td className="py-4 px-4 text-right font-mono text-white font-bold">{stats.totalTx}</td>
+                      <td className="py-4 px-4 text-xs text-slate-400">
+                        {language === 'tr' 
+                          ? 'Dapp üzerinden bugüne kadar zamanlanmış tüm ödemeler'
+                          : 'All payments scheduled using the Dapp to date'}
+                      </td>
+                    </tr>
 
-            {/* Middle Section: Distribution & Success Meter */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Status Breakdown Slider */}
-              <div className="md:col-span-2 border border-slate-800/50 rounded-2xl bg-gradient-to-b from-slate-900/30 to-slate-950/30 p-6 backdrop-blur-sm flex flex-col justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-300 mb-6">İşlem Durum Dağılımı / Transaction Distribution</h3>
-                  
-                  {/* Gauge Bar */}
-                  <div className="h-4 w-full bg-slate-900 rounded-full overflow-hidden flex mb-6">
-                    <div
-                      style={{ width: `${stats.totalTx > 0 ? (stats.executedTx / stats.totalTx) * 100 : 0}%` }}
-                      className="bg-emerald-500 transition-all shadow-inner shadow-emerald-700/30"
-                      title={`${t('statusExecuted')}: ${stats.executedTx}`}
-                    />
-                    <div
-                      style={{ width: `${stats.totalTx > 0 ? (stats.cancelledTx / stats.totalTx) * 100 : 0}%` }}
-                      className="bg-rose-500 transition-all shadow-inner shadow-rose-700/30"
-                      title={`${t('statusCancelled')}: ${stats.cancelledTx}`}
-                    />
-                    <div
-                      style={{ width: `${stats.totalTx > 0 ? (stats.pendingTx / stats.totalTx) * 100 : 0}%` }}
-                      className="bg-amber-500 transition-all shadow-inner shadow-amber-700/30"
-                      title={`${t('statusPending')}: ${stats.pendingTx}`}
-                    />
-                  </div>
-                </div>
+                    <tr className="border-b border-slate-900 hover:bg-slate-900/10 transition-colors">
+                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Başarıyla Yürütülen Emirler' : 'Executed Orders'}</td>
+                      <td className="py-4 px-4 text-right font-mono text-emerald-400 font-bold">{stats.executedTx}</td>
+                      <td className="py-4 px-4 text-xs text-slate-400">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+                          {language === 'tr' ? 'Zamanı gelip başarıyla transfer edilenler' : 'Successfully executed transfers'}
+                        </span>
+                      </td>
+                    </tr>
 
-                <div className="grid grid-cols-3 gap-4">
-                  {/* Executed indicator */}
-                  <div className="bg-slate-900/40 border border-slate-800/30 p-3 rounded-xl flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-                      <span className="text-xs text-slate-400 font-medium">{t('executedTx')}</span>
-                    </div>
-                    <span className="text-sm font-bold text-white">{stats.executedTx}</span>
-                  </div>
+                    <tr className="border-b border-slate-900 hover:bg-slate-900/10 transition-colors">
+                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'İptal Edilen Emirler' : 'Cancelled Orders'}</td>
+                      <td className="py-4 px-4 text-right font-mono text-rose-400 font-bold">{stats.cancelledTx}</td>
+                      <td className="py-4 px-4 text-xs text-slate-400">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
+                          {language === 'tr' ? 'Kullanıcılar tarafından 24 saatlik süre içinde geri çekilenler' : 'Orders cancelled by users prior to execution'}
+                        </span>
+                      </td>
+                    </tr>
 
-                  {/* Cancelled indicator */}
-                  <div className="bg-slate-900/40 border border-slate-800/30 p-3 rounded-xl flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
-                      <span className="text-xs text-slate-400 font-medium">{t('cancelledTx')}</span>
-                    </div>
-                    <span className="text-sm font-bold text-white">{stats.cancelledTx}</span>
-                  </div>
+                    <tr className="border-b border-slate-900 hover:bg-slate-900/10 transition-colors">
+                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Bekleyen (Aktif) Emirler' : 'Pending Orders'}</td>
+                      <td className="py-4 px-4 text-right font-mono text-amber-400 font-bold">{stats.pendingTx}</td>
+                      <td className="py-4 px-4 text-xs text-slate-400">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
+                          {language === 'tr' ? 'Günü geldiğinde relayer tarafından otomatik yürütülecekler' : 'Active orders waiting to be executed'}
+                        </span>
+                      </td>
+                    </tr>
 
-                  {/* Pending indicator */}
-                  <div className="bg-slate-900/40 border border-slate-800/30 p-3 rounded-xl flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
-                      <span className="text-xs text-slate-400 font-medium">{t('pendingTx')}</span>
-                    </div>
-                    <span className="text-sm font-bold text-white">{stats.pendingTx}</span>
-                  </div>
-                </div>
-              </div>
+                    <tr className="border-b border-slate-900 hover:bg-slate-900/10 transition-colors">
+                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Tekil Cüzdan Sayısı' : 'Unique Wallets'}</td>
+                      <td className="py-4 px-4 text-right font-mono text-white font-bold">{stats.uniqueWalletsCount}</td>
+                      <td className="py-4 px-4 text-xs text-slate-400">
+                        {language === 'tr' 
+                          ? 'Akıllı sözleşmeyle etkileşime giren (gönderen veya alıcı) tekil cüzdanlar'
+                          : 'Unique wallet addresses interacting with the contract (as sender or receiver)'}
+                      </td>
+                    </tr>
 
-              {/* Success Rate Circle / Card */}
-              <div className="border border-slate-800/50 rounded-2xl bg-gradient-to-b from-slate-900/30 to-slate-950/30 p-6 backdrop-blur-sm flex flex-col justify-between items-center text-center">
-                <span className="text-sm font-semibold text-slate-300 self-start">{t('successRate')}</span>
-                
-                <div className="relative flex items-center justify-center my-4">
-                  {/* SVG circular track */}
-                  <svg className="w-28 h-28 transform -rotate-90">
-                    <circle
-                      cx="56"
-                      cy="56"
-                      r="48"
-                      className="stroke-slate-800"
-                      strokeWidth="8"
-                      fill="transparent"
-                    />
-                    <circle
-                      cx="56"
-                      cy="56"
-                      r="48"
-                      className="stroke-indigo-500 transition-all duration-1000"
-                      strokeWidth="8"
-                      fill="transparent"
-                      strokeDasharray={301.6}
-                      strokeDashoffset={301.6 - (301.6 * successRate) / 100}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute text-2xl font-extrabold text-white">
-                    %{successRate}
-                  </div>
-                </div>
-
-                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
-                  Zamanlı İşlemlerin Başarısı
-                </span>
+                    <tr className="hover:bg-slate-900/10 transition-colors">
+                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Sistem Başarı Oranı' : 'Success Rate'}</td>
+                      <td className="py-4 px-4 text-right font-mono text-indigo-400 font-extrabold text-base">%{successRate}</td>
+                      <td className="py-4 px-4 text-xs text-slate-400">
+                        {language === 'tr' 
+                          ? 'Yürütülen emirlerin, sonuçlanmış (yürütülmüş veya iptal edilmiş) tüm emirlere oranı'
+                          : 'Ratio of executed orders to all completed (executed or cancelled) orders'}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
+
 
             {/* Bottom Section: Recent Orders Table */}
             <div className="border border-slate-800/50 rounded-2xl bg-gradient-to-b from-slate-900/20 to-slate-950/20 p-6 backdrop-blur-sm">
